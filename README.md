@@ -1,3 +1,3 @@
 # xlsu.github.io
-blog
-personal pages
+> blog
+> personal pages
