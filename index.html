@@ -106,9 +106,7 @@
                 if(number == null || isNaN(number) || number == "") {
                     number = 10;
                 }
-                console.log("number====", number);
                 let surname = document.querySelector("#surname").value;
-                console.log("surname====", surname);
                 let displayNames = document.getElementById("displayNames");
                 for (let index = 0; index < number; index++) {
                     let xing = surname;
@@ -129,6 +127,8 @@
             function clearNames() {
                 let displayNames = document.getElementById("displayNames");
                 displayNames.innerHTML = "";
+                document.querySelector("#number").value = "";
+                document.querySelector("#surname").value = "";
             }
         </script>
 
