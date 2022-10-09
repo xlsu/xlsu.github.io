@@ -1,0 +1,118 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>看谁翻得快</title>
+    <link href="./apis.css" rel="stylesheet"/>
+</head>
+
+  <body>
+    <div class="title">看谁翻得快</div>
+    <div id="time">计时未开始</div>
+    <div id="box">
+      <div class="left"></div>
+      <div class="right"></div>
+    </div>
+
+    <script src="./jquery.min.js"></script>
+    <script>
+        // from: https://juejin.cn/post/7152399177723412511
+         $(function () {
+            const imgSrc = [
+                'https://img01.yzcdn.cn/upload_files/2022/07/20/Fk1rj4gSaia1i8yD-FSO8CWLWlSu.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/03/16/Fo3SKNvQG5cIj3IspG_SOs_T216M.png!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/07/19/FsT754_weL6KZgUC2TuRWxr5zLnG.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/05/30/FguIz4XVMqAS3ft_7thNqlJrT0_F.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/05/09/FvG5_KInsbyhVq9W6xbygpo9jb9i.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/05/30/Fpht4CzextqfHA048FGU8m_t4NP5.jpeg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/03/15/FlTBO9tItc9TXslq6wYd87udb-6t.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/03/15/Fi77MVQB0xREZRQdzaKHyHNuG-yg.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/03/16/FtBQGLwuPQJBuIHs0LjxbaSJVloV.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/03/16/FrZxLRso63OS_oKTD6xXk6Ao4Z2C.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/05/09/FvpbuQ35dFtL_oOcjJCfgPuPseIY.jpg!280x280.jpg',
+                'https://img01.yzcdn.cn/upload_files/2022/05/16/FlvZNZzU96K_d0DzxgFv3mh5IDA3.jpg!280x280.jpg',
+            ]
+
+            let len = imgSrc.length
+            let left_Map = {}
+            let right_Map = {}
+            let cache = []
+            let findNum = 0
+            let timeText = 0
+
+            function randomKey (map, from) {
+                let key = null
+                do {
+                    key = Math.floor(Math.random()*len)
+                } while (map[key])
+                let div = $('<div>')
+                div.addClass('item')
+                div.addClass('shine')
+                div.attr('key', key)
+                div.css('background-image', `url(${imgSrc[key]})`)
+                map[key] = div
+                $(`.${from}`).append(div)
+            }
+
+            for(let i = 0;i < imgSrc.length; i++) {
+                randomKey(left_Map, 'left')
+                randomKey(right_Map, 'right')
+            }
+
+            let t = setTimeout(function () {
+                for(let i in left_Map) {
+                    left_Map[i].removeClass('shine')
+                    left_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                }
+                for(let i in right_Map) {
+                    right_Map[i].removeClass('shine')
+                    right_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                }
+                let time = new Date().getTime()
+                let timer = setInterval(() => {
+                    timeText = (new Date().getTime() - time) / 1000
+                    $('#time').text(timeText+'秒')
+                }, 10)
+                $('.item').click(function () {
+                    if ($(this).hasClass('shine')) {
+                        return false
+                    }
+                    let key = Number($(this).attr('key'))
+                    $(this).addClass('shine')
+                    $(this).css('background-image', `url(${imgSrc[key]})`)
+                    if (cache.length === 1) {
+                        if (cache.find(v => v===key) !== undefined) {
+                            cache = []
+                            findNum++
+                            console.log(findNum)
+                            if (findNum>=12) {
+                                clearInterval(timer)
+                                $('#time').text('游戏结束，用时'+timeText+'秒')
+                            }
+                            return false
+                        } else {
+                            let self = this
+                            let inx = cache[0]
+                            cache = []
+                            let tm = setTimeout(function () {
+                            $(`.item[key=${inx}]`).removeClass('shine')
+                            $(`.item[key=${inx}]`).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                            $(self).removeClass('shine')
+                            $(self).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                            
+                            }, 500)
+                        }
+                    } else {
+                        cache.push(key)
+                    }
+
+                })
+                clearTimeout(t)
+                t = null
+            }, 3000)
+            
+        })
+    </script>
+  </body>
+</html>
