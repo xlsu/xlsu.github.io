@@ -7,60 +7,89 @@
     <link href="./apis.css" rel="stylesheet"/>
 </head>
 
-  <body>
-    <div class="title">看谁翻得快</div>
-    <div id="time">计时未开始</div>
-    <div id="box">
-      <div class="left"></div>
-      <div class="right"></div>
+<body>
+    <div class="container">
+        <div class="title">点击卡牌来翻转牌面，两张相同图案的卡牌即可保留，游戏计时将在卡牌翻转之后开始，完全翻转所有卡牌则计时结束</div>
+        <div id="time"><span id="timeText">计时未开始</span></div>
+        <div id="box">
+            <div class="left"></div>
+            <div class="right"></div>
+        </div>
+        <button id="startBtn" onclick="start()" class="start-btn">开始</button>
+        <button id="restartBtn" onclick="restart()" class="start-btn">重新开始</button>
     </div>
-
+    
     <script src="./jquery.min.js"></script>
     <script>
-        // from: https://juejin.cn/post/7152399177723412511
-         $(function () {
-            const imgSrc = [
-                'https://img01.yzcdn.cn/upload_files/2022/07/20/Fk1rj4gSaia1i8yD-FSO8CWLWlSu.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/03/16/Fo3SKNvQG5cIj3IspG_SOs_T216M.png!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/07/19/FsT754_weL6KZgUC2TuRWxr5zLnG.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/05/30/FguIz4XVMqAS3ft_7thNqlJrT0_F.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/05/09/FvG5_KInsbyhVq9W6xbygpo9jb9i.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/05/30/Fpht4CzextqfHA048FGU8m_t4NP5.jpeg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/03/15/FlTBO9tItc9TXslq6wYd87udb-6t.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/03/15/Fi77MVQB0xREZRQdzaKHyHNuG-yg.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/03/16/FtBQGLwuPQJBuIHs0LjxbaSJVloV.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/03/16/FrZxLRso63OS_oKTD6xXk6Ao4Z2C.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/05/09/FvpbuQ35dFtL_oOcjJCfgPuPseIY.jpg!280x280.jpg',
-                'https://img01.yzcdn.cn/upload_files/2022/05/16/FlvZNZzU96K_d0DzxgFv3mh5IDA3.jpg!280x280.jpg',
-            ]
+        /** 参考: https://juejin.cn/post/7152399177723412511 */
 
-            let len = imgSrc.length
-            let left_Map = {}
-            let right_Map = {}
-            let cache = []
-            let findNum = 0
-            let timeText = 0
+        const imgSrc = [
+            'https://s1.ax1x.com/2022/10/10/xY5lrj.png',
+            'https://s1.ax1x.com/2022/10/10/xY5QMQ.png',
+            'https://s1.ax1x.com/2022/10/10/xY5Kxg.png',
+            'https://s1.ax1x.com/2022/10/10/xY5uRS.png',
+            'https://s1.ax1x.com/2022/10/10/xY5nG8.png',
+            'https://s1.ax1x.com/2022/10/10/xY5mPf.png',
+            'https://s1.ax1x.com/2022/10/10/xY5ZIP.png',
+            'https://s1.ax1x.com/2022/10/10/xY5Vat.png',
+            'https://s1.ax1x.com/2022/10/10/xY5Frd.png',
+            'https://s1.ax1x.com/2022/10/10/xY5iKH.png',
+            'https://s1.ax1x.com/2022/10/10/xY5Cxe.png',
+            'https://s1.ax1x.com/2022/10/10/xY592D.png',
+        ]
 
-            function randomKey (map, from) {
-                let key = null
-                do {
-                    key = Math.floor(Math.random()*len)
-                } while (map[key])
-                let div = $('<div>')
-                div.addClass('item')
-                div.addClass('shine')
-                div.attr('key', key)
-                div.css('background-image', `url(${imgSrc[key]})`)
-                map[key] = div
-                $(`.${from}`).append(div)
+        const COUNT_DOWN = 5
+
+        var len = imgSrc.length
+        var left_Map = {}
+        var right_Map = {}
+        var cache = []
+        var findNum = 0
+        var timeText = 0
+        var timer = null;
+
+        function reset() {
+            left_Map = {}
+            right_Map = {}
+            cache = []
+            findNum = 0
+            timeText = 0
+            if(timer) {
+                clearInterval(timer)
             }
+            timer = null
+            $('.left').html('')
+            $('.right').html('')
+        }
+        
+        function randomKey (map, from) {
+            let key = null
+            do {
+                key = Math.floor(Math.random() * len)
+            } while (map[key])
 
-            for(let i = 0;i < imgSrc.length; i++) {
-                randomKey(left_Map, 'left')
-                randomKey(right_Map, 'right')
-            }
+            let div = $('<div>')
+            div.addClass('item')
+            div.addClass('shine')
+            div.attr('key', key)
+            div.css('background-image', `url(${imgSrc[key]})`)
+            map[key] = div
+            $(`.${from}`).append(div)          
+        }
 
-            let t = setTimeout(function () {
+        function initBackground() {
+            return new Promise((resolve, reject) => {
+                for(let i = 0;i < imgSrc.length; i++) {
+                    randomKey(left_Map, 'left')
+                    randomKey(right_Map, 'right')
+                }
+
+                resolve()
+            })
+        }
+
+        function closeBackground() {
+            return new Promise((resolve, reject) => {
                 for(let i in left_Map) {
                     left_Map[i].removeClass('shine')
                     left_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
@@ -69,11 +98,61 @@
                     right_Map[i].removeClass('shine')
                     right_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
                 }
-                let time = new Date().getTime()
-                let timer = setInterval(() => {
-                    timeText = (new Date().getTime() - time) / 1000
-                    $('#time').text(timeText+'秒')
-                }, 10)
+                resolve()
+            })
+        }
+
+        function openBackground() {
+            return new Promise((resolve, reject) => {
+                for(let i in left_Map) {
+                    left_Map[i].addClass('shine')
+                    let key = jQuery(left_Map[i]).attr("key")
+                    left_Map[i].css('background-image', `url(${imgSrc[key]})`)
+                }
+                for(let i in right_Map) {
+                    right_Map[i].addClass('shine')
+                    let key = jQuery(right_Map[i]).attr("key")
+                    right_Map[i].css('background-image', `url(${imgSrc[key]})`)
+                }
+                resolve()
+            })
+        }
+
+        initBackground().then(closeBackground())
+        $('#restartBtn').hide()
+
+        function start() {
+            $('#startBtn').hide()
+            $('#restartBtn').hide()
+            toStart()
+        }
+
+        function toStart() {
+            initItem().then(openBackground()).then(() => {
+                let countDown = COUNT_DOWN
+                $('#timeText').html('倒计时' + countDown + '秒后开始')
+                timer = setInterval(() => {
+                    countDown--
+                    if (countDown === 0) {
+                        clearInterval(timer)
+                        let time = new Date().getTime()
+                        timer = setInterval(() => {
+                            timeText = (new Date().getTime() - time) / 1000
+                            $('#timeText').text(timeText)
+                            $('#timeText').after().append('秒')
+                        }, 100)
+
+                        closeBackground()
+                        $('#restartBtn').show()
+                    } else {
+                        $('#timeText').html('倒计时' + countDown + '秒后开始')
+                    }
+                }, 1000)
+            })
+        }
+
+        function initItem() {
+            return new Promise((resolve, reject) => {
                 $('.item').click(function () {
                     if ($(this).hasClass('shine')) {
                         return false
@@ -82,25 +161,25 @@
                     $(this).addClass('shine')
                     $(this).css('background-image', `url(${imgSrc[key]})`)
                     if (cache.length === 1) {
-                        if (cache.find(v => v===key) !== undefined) {
+                        if (cache.find(v => v === key) !== undefined) {
                             cache = []
                             findNum++
-                            console.log(findNum)
-                            if (findNum>=12) {
+                            console.log("findNum====", findNum)
+                            if (findNum >= 12) {
                                 clearInterval(timer)
-                                $('#time').text('游戏结束，用时'+timeText+'秒')
+                                $('#timeText').text('游戏结束，用时' + timeText)
                             }
                             return false
                         } else {
+                            // 加一个人为延时，处理已经翻转但配对不成功的两个牌面，并清空cache缓存
                             let self = this
                             let inx = cache[0]
                             cache = []
                             let tm = setTimeout(function () {
-                            $(`.item[key=${inx}]`).removeClass('shine')
-                            $(`.item[key=${inx}]`).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
-                            $(self).removeClass('shine')
-                            $(self).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
-                            
+                                $(`.item[key=${inx}]`).removeClass('shine')
+                                $(`.item[key=${inx}]`).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                                $(self).removeClass('shine')
+                                $(self).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
                             }, 500)
                         }
                     } else {
@@ -108,11 +187,18 @@
                     }
 
                 })
-                clearTimeout(t)
-                t = null
-            }, 3000)
-            
-        })
+
+                resolve()
+            })            
+        }
+
+        function restart() {
+            reset()
+            initBackground()
+                .then(closeBackground())
+                .then(start())
+        }
+
     </script>
   </body>
 </html>
