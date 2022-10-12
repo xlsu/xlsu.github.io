@@ -9,11 +9,11 @@
 
 <body>
     <div class="container">
-        <div class="title">点击卡牌来翻转牌面，两张相同图案的卡牌即可保留，游戏计时将在卡牌翻转之后开始，完全翻转所有卡牌则计时结束</div>
+        <div class="title">点击卡牌来翻转牌面，两张相同图案的卡牌即可保留<br/>游戏计时将在卡牌翻转之后开始，完全翻转所有卡牌则计时结束</div>
         <div id="time"><span id="timeText">计时未开始</span></div>
         <div id="box">
-            <div class="left"></div>
-            <div class="right"></div>
+            <div class="top"></div>
+            <div class="bottom"></div>
         </div>
         <button id="startBtn" onclick="start()" class="start-btn">开始</button>
         <button id="restartBtn" onclick="restart()" class="start-btn">重新开始</button>
@@ -23,65 +23,77 @@
     <script>
         /** 参考: https://juejin.cn/post/7152399177723412511 */
 
-        const imgSrc = [
-            'https://c2.im5i.com/2022/10/11/TSRES.png',
-            'https://c2.im5i.com/2022/10/11/TSXAD.png',
-            'https://c2.im5i.com/2022/10/11/TSWHP.png',
-            'https://c2.im5i.com/2022/10/11/TSTG2.png',
-            'https://c2.im5i.com/2022/10/11/TSHa7.png',
-            'https://c2.im5i.com/2022/10/11/TS59l.png',
-            'https://c2.im5i.com/2022/10/11/TSuln.png',
-            'https://c2.im5i.com/2022/10/11/TSt11.png',
-            'https://c2.im5i.com/2022/10/11/TSyG6.png',
-            'https://c2.im5i.com/2022/10/11/TSsqw.png',
-            'https://c2.im5i.com/2022/10/11/TSEsZ.png',
-            'https://c2.im5i.com/2022/10/11/TSJAU.png',
+        const CARDS = [
+            'http://res.olymind.com/emojidog/11.png',
+            'http://res.olymind.com/emojidog/12.png',
+            'http://res.olymind.com/emojidog/13.png',
+            'http://res.olymind.com/emojidog/14.png',
+            'http://res.olymind.com/emojidog/17.png',
+            'http://res.olymind.com/emojidog/18.png',
+            'http://res.olymind.com/emojidog/19.png',
+            'http://res.olymind.com/emojidog/20.png',
+            'http://res.olymind.com/emojidog/21.png',
+            'http://res.olymind.com/emojidog/22.png',
+            'http://res.olymind.com/emojidog/23.png',
+            'http://res.olymind.com/emojidog/24.png',
+            'http://res.olymind.com/emojidog/1.png',
+            'http://res.olymind.com/emojidog/2.png',
+            'http://res.olymind.com/emojidog/4.png',
+            'http://res.olymind.com/emojidog/5.png',
+            'http://res.olymind.com/emojidog/6.png',
+            'http://res.olymind.com/emojidog/7.png',
+
+            // 'http://res.olymind.com/emojidog/8.png',
+            // 'http://res.olymind.com/emojidog/9.png',
+            // 'http://res.olymind.com/emojidog/10.png',
+            // 'http://res.olymind.com/emojidog/37.png',
         ]
+        const CLOSE_IMG = 'http://res.olymind.com/emojidog/15.png'
 
         const COUNT_DOWN = 5
 
-        var len = imgSrc.length
-        var left_Map = {}
-        var right_Map = {}
-        var cache = []
+        var cardLen = CARDS.length
+        var top_arr = []
+        var bottom_arr = []
+        var cacheIndex = []
         var findNum = 0
         var timeText = 0
         var timer = null;
 
         function reset() {
-            left_Map = {}
-            right_Map = {}
-            cache = []
+            top_arr = []
+            bottom_arr = []
+            cacheIndex = []
             findNum = 0
             timeText = 0
             if(timer) {
                 clearInterval(timer)
             }
             timer = null
-            $('.left').html('')
-            $('.right').html('')
+            $('.top').html('')
+            $('.bottom').html('')
         }
         
-        function randomKey (map, from) {
-            let key = null
+        function randomCardIndex (arr, from) {
+            let index = null
             do {
-                key = Math.floor(Math.random() * len)
-            } while (map[key])
+                index = Math.floor(Math.random() * cardLen)
+            } while (arr[index])
 
             let div = $('<div>')
             div.addClass('item')
             div.addClass('shine')
-            div.attr('key', key)
-            div.css('background-image', `url(${imgSrc[key]})`)
-            map[key] = div
+            div.attr('indx', index)
+            div.css('background-image', `url(${CARDS[index]})`)
+            arr[index] = div
             $(`.${from}`).append(div)          
         }
 
         function initBackground() {
             return new Promise((resolve, reject) => {
-                for(let i = 0;i < imgSrc.length; i++) {
-                    randomKey(left_Map, 'left')
-                    randomKey(right_Map, 'right')
+                for(let i = 0;i < CARDS.length; i++) {
+                    randomCardIndex(top_arr, 'top')
+                    randomCardIndex(bottom_arr, 'bottom')
                 }
 
                 resolve()
@@ -90,13 +102,13 @@
 
         function closeBackground() {
             return new Promise((resolve, reject) => {
-                for(let i in left_Map) {
-                    left_Map[i].removeClass('shine')
-                    left_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                for(let i in top_arr) {
+                    top_arr[i].removeClass('shine')
+                    top_arr[i].css('background-image', `url(${CLOSE_IMG})`)
                 }
-                for(let i in right_Map) {
-                    right_Map[i].removeClass('shine')
-                    right_Map[i].css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                for(let i in bottom_arr) {
+                    bottom_arr[i].removeClass('shine')
+                    bottom_arr[i].css('background-image', `url(${CLOSE_IMG})`)
                 }
                 resolve()
             })
@@ -104,16 +116,29 @@
 
         function openBackground() {
             return new Promise((resolve, reject) => {
-                for(let i in left_Map) {
-                    left_Map[i].addClass('shine')
-                    let key = jQuery(left_Map[i]).attr("key")
-                    left_Map[i].css('background-image', `url(${imgSrc[key]})`)
+                for(let i in top_arr) {
+                    top_arr[i].addClass('shine')
+                    let key = jQuery(top_arr[i]).attr("indx")
+                    top_arr[i].css('background-image', `url(${CARDS[key]})`)
                 }
-                for(let i in right_Map) {
-                    right_Map[i].addClass('shine')
-                    let key = jQuery(right_Map[i]).attr("key")
-                    right_Map[i].css('background-image', `url(${imgSrc[key]})`)
+                for(let i in bottom_arr) {
+                    bottom_arr[i].addClass('shine')
+                    let key = jQuery(bottom_arr[i]).attr("indx")
+                    bottom_arr[i].css('background-image', `url(${CARDS[key]})`)
                 }
+                resolve()
+            })
+        }
+
+        function autoShortShow() {
+            return new Promise((resolve, reject) => {
+                let items = $('.item')
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    let cardIndex = jQuery(item).attr("indx")
+
+                }
+
                 resolve()
             })
         }
@@ -121,13 +146,11 @@
         initBackground().then(closeBackground())
         $('#restartBtn').hide()
 
+        // 开始
         function start() {
             $('#startBtn').hide()
             $('#restartBtn').hide()
-            toStart()
-        }
-
-        function toStart() {
+            
             initItem().then(openBackground()).then(() => {
                 let countDown = COUNT_DOWN
                 $('#timeText').html('倒计时' + countDown + '秒后开始')
@@ -137,10 +160,10 @@
                         clearInterval(timer)
                         let time = new Date().getTime()
                         timer = setInterval(() => {
-                            timeText = (new Date().getTime() - time) / 1000
+                            timeText = ((new Date().getTime() - time) / 1000) + ""
                             $('#timeText').text(timeText)
                             $('#timeText').after().append('秒')
-                        }, 100)
+                        }, 20)
 
                         closeBackground()
                         $('#restartBtn').show()
@@ -157,35 +180,35 @@
                     if ($(this).hasClass('shine')) {
                         return false
                     }
-                    let key = Number($(this).attr('key'))
+                    let key = Number($(this).attr('indx'))
                     $(this).addClass('shine')
-                    $(this).css('background-image', `url(${imgSrc[key]})`)
-                    if (cache.length === 1) {
-                        if (cache.find(v => v === key) !== undefined) {
-                            cache = []
+                    $(this).css('background-image', `url(${CARDS[key]})`)
+                    
+                    if (cacheIndex.length === 1) {
+                        if (cacheIndex.find(v => v === key) !== undefined) {
+                            cacheIndex = []
                             findNum++
                             console.log("findNum====", findNum)
-                            if (findNum >= 12) {
+                            if (findNum >= cardLen) {
                                 clearInterval(timer)
-                                $('#timeText').text('游戏结束，用时' + timeText)
+                                $('#timeText').text('游戏结束，用时' + timeText + '秒')
                             }
                             return false
                         } else {
-                            // 加一个人为延时，处理已经翻转但配对不成功的两个牌面，并清空cache缓存
+                            // 加一个人为延时，处理已经翻转但配对不成功的两个牌面，并清空cacheIndex缓存
                             let self = this
-                            let inx = cache[0]
-                            cache = []
+                            let inx = cacheIndex[0]
+                            cacheIndex = []
                             let tm = setTimeout(function () {
-                                $(`.item[key=${inx}]`).removeClass('shine')
-                                $(`.item[key=${inx}]`).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                                $(`.item[indx=${inx}]`).removeClass('shine')
+                                $(`.item[indx=${inx}]`).css('background-image', `url(${CLOSE_IMG})`)
                                 $(self).removeClass('shine')
-                                $(self).css('background-image', `url(https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/0a4ce25d48b8405cbf5444b6195928d4~tplv-k3u1fbpfcp-no-mark:0:0:0:0.awebp)`)
+                                $(self).css('background-image', `url(${CLOSE_IMG})`)
                             }, 500)
                         }
                     } else {
-                        cache.push(key)
+                        cacheIndex.push(key)
                     }
-
                 })
 
                 resolve()
