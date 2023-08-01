@@ -1,44 +1,68 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MyBatis SQL日志格式化工具</title>
-    <meta name="keywords" contect="MyBatis,SQL,SQL日志格式化,在线">
-    <meta name="description" contect="MyBatis SQL日志格式化在线工具">
+    <meta charset="utf-8">
+    <title></title>
 </head>
+<style>
+	.epKslM {
+		font-family: inherit;
+		font-weight: 500;
+		font-size: 14px;
+		cursor: pointer;
+		appearance: none;
+		user-select: none;
+		text-align: center;
+		-webkit-box-align: center;
+		-webkit-box-pack: justify;
+		width:100px;
+		height: 54px;
+		min-width: max-content;
+		color: rgb(255, 255, 255);
+		box-shadow: rgba(31, 35, 40, 0.1) 0px 1px 0px;
+		border-radius: 6px;
+		border-width: 1px;
+		border-style: solid;
+		border-image: initial;
+		border-color: rgba(31, 35, 40, 0.15);
+		text-decoration: none;
+		padding: 0px 12px;
+		gap: 8px;
+		transition: color 80ms cubic-bezier(0.65, 0, 0.35, 1) 0s, fill, background-color, border-color;
+	}
+	.gray {
+		background-color: #707070;
+	}
+	.blue {
+		background-color: #1a89c7;
+	}
+	.green {
+		background-color: rgb(31, 136, 61);
+	}
+</style>
 <body>
- 
+
 <h2><font color="#00bfff"> 输入Mybatis SQL日志：</font></h2>
- 
+
 <textarea id="sqlLog" rows="13" cols="140" style="font-size:20px"></textarea>
- 
- 
-<div style="border:0px deepskyblue solid;width:1425px;height:50px;text-align:right">
-    <button style="color:mediumblue;width:100px;height:60px" type="button"
-            onclick="clearLog(document.getElementById('sqlLog'))">
-        清空
-    </button>
-    <button style="color:mediumblue;width:100px;height:60px" type="submit"
-            onclick="f(document.getElementById('sqlLog'))">
-        解析SQL
-    </button>
+
+<div style="border:0px deepskyblue solid;width:100%;height:50px;text-align:center;">
+    <button class="epKslM gray" type="button" onclick="clearLog()">清空</button>
+    <button class="epKslM blue" type="submit" onclick="formatSql()">解析SQL</button>
+    <button class="epKslM green" type="button" onclick="copySQL()">复制SQL</button>
 </div>
  
 <h2><font color="#32cd32">解析为可执行SQL：</font></h2>
  
-<textarea id="d1" rows="13" cols="140" style="font-size:20px"></textarea>
-<div style="border:0px deepskyblue solid;width:1425px;height:50px;text-align:right">
-    <button style="color:mediumblue;width:100px;height:60px" type="button" onclick="copySQL()">复制SQL</button>
-</div>
+<textarea id="finalSql" rows="13" cols="140" style="font-size:20px"></textarea>
  
 <div id="msg"
-     style="color:cornflowerblue;border:0px black solid;width:800px;height:20px;text-align:right;font-style: initial;font-size: large">
+     style="color:cornflowerblue;border:0px black solid;width:100%;height:20px;text-align:center;font-style: initial;font-size: large">
 </div>
 <script type="text/javascript">
 		
-		function f(obj) {
-            var textVa = obj.value;
+		function formatSql() {
+            var textVa = document.getElementById('sqlLog').value;
 			if(!textVa || textVa.length < 1) {
 				alert('sql 内容格式有误，请检查！')
 				return;
@@ -56,8 +80,6 @@
 				alert('sql 内容格式有误，请检查!!!')
 				return;
 			}
-			console.log('sql====' + sql)
-			console.log('paramArr====', paramArr)
 			
 			for(let i = 0; i < paramArr.length; i++) {
 				let param = paramArr[i]
@@ -70,83 +92,27 @@
 			
 			sql = sqlFormatter.format(sql, {uppercase: true});
 			
-			document.getElementById("d1").innerHTML = sql;
+			document.getElementById("finalSql").innerHTML = sql;
             return textVa;
 		}
 
-        function f2(obj) {
-            var textVa = obj.value;
-			if(!textVa) {
-				alert('sql 内容格式有误，请检查!')
-				return;
-			}
-			
-			formatSql(textVa)
-			
- 
-            // 获取带问号的SQL语句
-            var statementStartIndex = textVa.indexOf('Preparing: ');
-            var statementEndIndex = textVa.length - 1;
-            for (var i = statementStartIndex; i < textVa.length; i++) {
-                if (textVa[i] == "") {
-                    statementEndIndex = i;
-                    break;
-                }
-            }
-            var statementStr = textVa.substring(statementStartIndex + "Preparing: ".length, statementEndIndex);
-            console.log(statementStr);
-            //获取参数
-            var parametersStartIndex = textVa.indexOf('Parameters: ');
-            var parametersEndIndex = textVa.length - 1;
-            for (var i = parametersStartIndex; i < textVa.length; i++) {
-                if (textVa[i] == "") {
-                    parametersEndIndex = i;
-                    break;
-                } else {
-                    console.log(textVa[i]);
-                }
-            }
-            var parametersStr = textVa.substring(parametersStartIndex + "Parameters: ".length, parametersEndIndex);
-            parametersStr = parametersStr.split(",");
-            console.log(parametersStr);
-            for (var i = 0; i < parametersStr.length; i++) {
-                // 如果数据中带括号将使用其他逻辑
-                tempStr = parametersStr[i].substring(0, parametersStr[i].indexOf("("));
-                // 获取括号中内容
-                typeStr = parametersStr[i].substring(parametersStr[i].indexOf("(") + 1, parametersStr[i].indexOf(")"));
-                // 如果为字符类型
-				//console.log(tempStr, typeStr)
-                if (typeStr == "String" || typeStr == "Timestamp") {
-                    statementStr = statementStr.replace("?", "'" + tempStr.trim() + "'");
-                } else {
-                    // 数值类型
-                    statementStr = statementStr.replace("?", tempStr.trim());
-                }
-            }
-            //console.log(statementStr);
-			let sql = statementStr.split('\n')[0];
-			sql = sqlFormatter.format(sql, {uppercase: true});
-
-            document.getElementById("d1").innerHTML = sql;
-            return textVa;
-        }
- 
         function copySQL() {
-            var SQL = document.getElementById("d1");
+            var SQL = document.getElementById("finalSql");
             SQL.select(); // 选择对象
             document.execCommand("Copy"); // 执行浏览器复制命令
             var msg = document.getElementById("msg");
             msg.innerHTML = "已复制到剪切板";
             setTimeout(function () {
                 msg.innerHTML = "";
-            }, 3000);
+            }, 4000);
  
         }
  
-        function clearLog(obj) {
+        function clearLog() {
+			let obj = document.getElementById('sqlLog')
             obj.select();
             obj.value = "";
-			document.getElementById("d1").innerHTML = '';
+			document.getElementById("finalSql").innerHTML = '';
         }
  
     </script>
