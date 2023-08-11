@@ -97,6 +97,7 @@
 				alert('sql 内容格式有误，请检查！')
 				return;
 			}
+
 			var contentArr = textVa.split(/[\n]/);
 			if(!contentArr || contentArr.length < 1) {
 				alert('sql 内容格式有误，请检查!!')
@@ -120,7 +121,15 @@
 				}
 			}
 			
+			console.log(sql);
 			sql = sqlFormatter.format(sql, {uppercase: true});
+
+			// 优化 -sqlFormatter 格式化会将带`的字段符号前后加空格
+			sql = sql.replace(new RegExp(" `","gm"),"`")
+					.replace(new RegExp("` ","gm"),"`")
+					.replace(new RegExp("` ","gm"),"`")
+					.replace(new RegExp("`=","gm"),"` =")
+					.replace(new RegExp("! =","gm"),"!=");
 			
 			document.getElementById("finalSql").innerHTML = sql;
             return textVa;
@@ -142,7 +151,7 @@
 		}
  
         function clearLog() {
-			document.getElementById("finalSql").value = '';
+			document.getElementById("finalSql").innerHTML = "";
 			let obj = document.getElementById('sqlLog')
             obj.select();
             obj.value = "";
